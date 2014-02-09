@@ -1,5 +1,5 @@
 /**
- * xininfo 
+ * xininfo
  *
  * MIT/X11 License
  * Copyright (c) 2014 Qball  Cow <qball@gmpclient.org>
@@ -58,12 +58,12 @@ static int find_arg( const int argc, char * const argv[], const char * const key
 
     return i < argc ? i: -1;
 }
-static void find_arg_str( int argc, char *argv[], char *key, char** val )
+static void find_arg_int ( int argc, char *argv[], char *key, int * val )
 {
     int i = find_arg( argc, argv, key );
 
     if ( val != NULL &&  i > 0 && i < argc-1 ) {
-        *val = argv[i+1];
+        *val = strtol( argv[i+1], NULL, 10 );
     }
 }
 
@@ -90,7 +90,7 @@ typedef struct {
 } MMB_Screen;
 
 // find active_monitor pointer location
-int pointer_get( Display *display, Window root, int *x, int *y )
+static int pointer_get( Display *display, Window root, int *x, int *y )
 {
     *x = 0;
     *y = 0;
@@ -107,7 +107,7 @@ int pointer_get( Display *display, Window root, int *x, int *y )
     return 0;
 }
 // retrieve a property of any type from a window
-int window_get_prop( Display *display, Window w, Atom prop, Atom *type, int *items, void *buffer, unsigned int bytes )
+static int window_get_prop( Display *display, Window w, Atom prop, Atom *type, int *items, void *buffer, unsigned int bytes )
 {
     Atom _type;
 
@@ -137,17 +137,19 @@ int window_get_prop( Display *display, Window w, Atom prop, Atom *type, int *ite
 
     return 0;
 }
-// XGetWindowAttributes with caching
-XWindowAttributes* window_get_attributes( Display *display,Window w )
+
+static XWindowAttributes* window_get_attributes( Display *display,Window w )
 {
     XWindowAttributes *cattr = malloc( sizeof( XWindowAttributes ) );
+
     if ( XGetWindowAttributes( display, w, cattr ) ) {
         return cattr;
     }
+
     return NULL;
 }
 // determine which monitor holds the active window, or failing that the active_monitor pointer
-void monitor_active( Display *display, MMB_Screen *mmb_screen )
+static void monitor_active( Display *display, MMB_Screen *mmb_screen )
 {
     Screen* screen = DefaultScreenOfDisplay( display );
     Window root = RootWindow( display, XScreenNumberOfScreen( screen ) );
@@ -156,13 +158,14 @@ void monitor_active( Display *display, MMB_Screen *mmb_screen )
     Atom type;
     int count;
 
-    Atom reqatom = XInternAtom (display,"_NET_ACTIVE_WINDOW" , False);
-    if ( window_get_prop(display, root, reqatom, &type, &count, &id, 1 )
+    Atom reqatom = XInternAtom ( display,"_NET_ACTIVE_WINDOW" , False );
+
+    if ( window_get_prop( display, root, reqatom, &type, &count, &id, 1 )
          && type == XA_WINDOW && count > 0 ) {
         XWindowAttributes *attr = window_get_attributes( display, id );
         mmb_screen->active_monitor.x = attr->x;
         mmb_screen->active_monitor.y = attr->y;
-        free(attr);
+        free( attr );
         return;
     }
 
@@ -215,7 +218,7 @@ static MMB_Screen *mmb_screen_create( Display *display )
         retv->monitors[0] = retv->base;
     }
 
-    monitor_active(display, retv);
+    monitor_active( display, retv );
 
     return retv;
 }
@@ -235,17 +238,18 @@ static void mmb_screen_free( MMB_Screen **screen )
     screen = NULL;
 }
 
-static unsigned int mmb_screen_get_active_monitor(const MMB_Screen *screen)
+static unsigned int mmb_screen_get_active_monitor( const MMB_Screen *screen )
 {
     for ( int i =0; i < screen->num_monitors; i++ ) {
-        if(INTERSECT(screen->active_monitor.x, screen->active_monitor.y, 1,1,
-                    screen->monitors[i].x, 
-                    screen->monitors[i].y, 
-                    screen->monitors[i].w, 
-                    screen->monitors[i].h)){
+        if ( INTERSECT( screen->active_monitor.x, screen->active_monitor.y, 1,1,
+                        screen->monitors[i].x,
+                        screen->monitors[i].y,
+                        screen->monitors[i].w,
+                        screen->monitors[i].h ) ) {
             return i;
         }
     }
+
     return 0;
 }
 
@@ -255,7 +259,7 @@ static void mmb_screen_print( const MMB_Screen *screen )
     printf( "Num. monitors: %d\n", screen->num_monitors );
 
     for ( int i =0; i < screen->num_monitors; i++ ) {
-    printf( "               %01d: %u %u -> %u %u\n",
+        printf( "               %01d: %u %u -> %u %u\n",
                 i,
                 screen->monitors[i].x,
                 screen->monitors[i].y,
@@ -264,8 +268,8 @@ static void mmb_screen_print( const MMB_Screen *screen )
               );
     }
 
-    unsigned int active_monitor = mmb_screen_get_active_monitor(screen);
-    printf("Active mon:    %u\n", active_monitor);
+    unsigned int active_monitor = mmb_screen_get_active_monitor( screen );
+    printf( "Active mon:    %u\n", active_monitor );
 }
 
 
@@ -304,21 +308,36 @@ int main ( int argc, char **argv )
     // Get monitor layout. (xinerama aware)
     MMB_Screen *mmb_screen = mmb_screen_create( display );
 
+    int monitor_pos = mmb_screen_get_active_monitor( mmb_screen );
 
-    if(find_arg( argc, argv, "-active-mon") >= 0) {
-        unsigned int mon = mmb_screen_get_active_monitor(mmb_screen);
-        printf("%u\n", mon);
+    find_arg_int( argc, argv, "-monitor", &monitor_pos );
+
+    if ( !( monitor_pos >= 0 && monitor_pos < mmb_screen->num_monitors ) ) {
+        fprintf( stderr, "Invalid monitor: %d (0 <= %d < %d failed)\n",
+                 monitor_pos,
+                 monitor_pos,
+                 mmb_screen->num_monitors );
+        // Cleanup
+        mmb_screen_free( &mmb_screen );
+        XCloseDisplay( display );
+        return EXIT_FAILURE;
     }
-    if(find_arg( argc, argv, "-active-mon-size") >= 0) {
-        unsigned int mon = mmb_screen_get_active_monitor(mmb_screen);
-        printf("%i %i\n", mmb_screen->monitors[mon].w,mmb_screen->monitors[mon].h); 
+
+    if ( find_arg( argc, argv, "-active-mon" ) >= 0 ) {
+        unsigned int mon = mmb_screen_get_active_monitor( mmb_screen );
+        printf( "%u\n", mon );
     }
-    if(find_arg( argc, argv, "-active-mon-pos") >= 0) {
-        unsigned int mon = mmb_screen_get_active_monitor(mmb_screen);
-        printf("%i %i\n", mmb_screen->monitors[mon].x,mmb_screen->monitors[mon].y); 
+
+    if ( find_arg( argc, argv, "-mon-size" ) >= 0 ) {
+        printf( "%i %i\n", mmb_screen->monitors[monitor_pos].w,mmb_screen->monitors[monitor_pos].h );
     }
-    if(find_arg( argc, argv, "-num-mon") >= 0) {
-        printf("%u\n", mmb_screen->num_monitors);
+
+    if ( find_arg( argc, argv, "-mon-pos" ) >= 0 ) {
+        printf( "%i %i\n", mmb_screen->monitors[monitor_pos].x,mmb_screen->monitors[monitor_pos].y );
+    }
+
+    if ( find_arg( argc, argv, "-num-mon" ) >= 0 ) {
+        printf( "%u\n", mmb_screen->num_monitors );
     }
 
     // Print layout
