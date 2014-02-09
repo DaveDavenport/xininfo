@@ -333,9 +333,14 @@ int main ( int argc, char **argv )
         printf( "%i %i\n", mmb_screen->monitors[monitor_pos].w,mmb_screen->monitors[monitor_pos].h );
     }
 
+    if ( find_arg( argc, argv, "-mon-width" ) >= 0 ) {
+        printf( "%i\n", mmb_screen->monitors[monitor_pos].w);
+    }
+
     if ( find_arg( argc, argv, "-mon-pos" ) >= 0 ) {
         printf( "%i %i\n", mmb_screen->monitors[monitor_pos].x,mmb_screen->monitors[monitor_pos].y );
     }
+
 
     if ( find_arg( argc, argv, "-num-mon" ) >= 0 ) {
         printf( "%u\n", mmb_screen->num_monitors );
