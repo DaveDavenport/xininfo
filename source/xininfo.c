@@ -70,8 +70,8 @@ static void find_arg_str( int argc, char *argv[], char *key, char** val )
 
 // Monitor layout stuff.
 typedef struct {
-    double x,y;
-    double w,h;
+    unsigned int x,y;
+    unsigned int w,h;
 
 } MMB_Rectangle;
 
@@ -251,11 +251,11 @@ static unsigned int mmb_screen_get_active_monitor(const MMB_Screen *screen)
 
 static void mmb_screen_print( const MMB_Screen *screen )
 {
-    printf( "Total size:    %.0f %.0f\n", screen->base.w, screen->base.h );
+    printf( "Total size:    %u %u\n", screen->base.w, screen->base.h );
     printf( "Num. monitors: %d\n", screen->num_monitors );
 
     for ( int i =0; i < screen->num_monitors; i++ ) {
-        printf( "\t%2d: %.0f %.0f -> %.0f %.0f\n",
+    printf( "               %01d: %u %u -> %u %u\n",
                 i,
                 screen->monitors[i].x,
                 screen->monitors[i].y,
@@ -265,7 +265,7 @@ static void mmb_screen_print( const MMB_Screen *screen )
     }
 
     unsigned int active_monitor = mmb_screen_get_active_monitor(screen);
-    printf("Active mon:  %u\n", active_monitor);
+    printf("Active mon:    %u\n", active_monitor);
 }
 
 
@@ -308,6 +308,14 @@ int main ( int argc, char **argv )
     if(find_arg( argc, argv, "-active-mon") >= 0) {
         unsigned int mon = mmb_screen_get_active_monitor(mmb_screen);
         printf("%u\n", mon);
+    }
+    if(find_arg( argc, argv, "-active-mon-size") >= 0) {
+        unsigned int mon = mmb_screen_get_active_monitor(mmb_screen);
+        printf("%i %i\n", mmb_screen->monitors[mon].w,mmb_screen->monitors[mon].h); 
+    }
+    if(find_arg( argc, argv, "-active-mon-pos") >= 0) {
+        unsigned int mon = mmb_screen_get_active_monitor(mmb_screen);
+        printf("%i %i\n", mmb_screen->monitors[mon].x,mmb_screen->monitors[mon].y); 
     }
     if(find_arg( argc, argv, "-num-mon") >= 0) {
         printf("%u\n", mmb_screen->num_monitors);
