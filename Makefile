@@ -1,5 +1,5 @@
 QUIET?=@
-CFLAGS?=-Wall -Wextra -O0 -g 
+CFLAGS?=-Wall -Wextra -O3 -g 
 VERSION?=0.14.2
 
 PROGRAM=xininfo
