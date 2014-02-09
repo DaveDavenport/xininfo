@@ -270,6 +270,7 @@ static void mmb_screen_print( const MMB_Screen *screen )
 
     unsigned int active_monitor = mmb_screen_get_active_monitor( screen );
     printf( "Active mon:    %u\n", active_monitor );
+    printf( "               %u-%u\n", screen->active_monitor.x, screen->active_monitor.y);
 }
 
 
