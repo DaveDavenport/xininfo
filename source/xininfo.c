@@ -70,8 +70,8 @@ static void find_arg_int ( int argc, char *argv[], char *key, int * val )
 
 // Monitor layout stuff.
 typedef struct {
-    unsigned int x,y;
-    unsigned int w,h;
+    int x,y;
+    int w,h;
 
 } MMB_Rectangle;
 
@@ -238,7 +238,7 @@ static void mmb_screen_free( MMB_Screen **screen )
     screen = NULL;
 }
 
-static unsigned int mmb_screen_get_active_monitor( const MMB_Screen *screen )
+static int mmb_screen_get_active_monitor( const MMB_Screen *screen )
 {
     for ( int i =0; i < screen->num_monitors; i++ ) {
         if ( INTERSECT( screen->active_monitor.x, screen->active_monitor.y, 1,1,
@@ -255,11 +255,11 @@ static unsigned int mmb_screen_get_active_monitor( const MMB_Screen *screen )
 
 static void mmb_screen_print( const MMB_Screen *screen )
 {
-    printf( "Total size:    %u %u\n", screen->base.w, screen->base.h );
+    printf( "Total size:    %d %d\n", screen->base.w, screen->base.h );
     printf( "Num. monitors: %d\n", screen->num_monitors );
 
     for ( int i =0; i < screen->num_monitors; i++ ) {
-        printf( "               %01d: %u %u -> %u %u\n",
+        printf( "               %01d: %d %d -> %d %d\n",
                 i,
                 screen->monitors[i].x,
                 screen->monitors[i].y,
@@ -268,9 +268,9 @@ static void mmb_screen_print( const MMB_Screen *screen )
               );
     }
 
-    unsigned int active_monitor = mmb_screen_get_active_monitor( screen );
-    printf( "Active mon:    %u\n", active_monitor );
-    printf( "               %u-%u\n", screen->active_monitor.x, screen->active_monitor.y);
+    int active_monitor = mmb_screen_get_active_monitor( screen );
+    printf( "Active mon:    %d\n", active_monitor );
+    printf( "               %d-%d\n", screen->active_monitor.x, screen->active_monitor.y);
 }
 
 
@@ -326,7 +326,7 @@ int main ( int argc, char **argv )
 
     if ( find_arg( argc, argv, "-active-mon" ) >= 0 ) {
         unsigned int mon = mmb_screen_get_active_monitor( mmb_screen );
-        printf( "%u\n", mon );
+        printf( "%d\n", mon );
     }
 
     if ( find_arg( argc, argv, "-mon-size" ) >= 0 ) {
