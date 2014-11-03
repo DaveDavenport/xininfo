@@ -55,8 +55,8 @@ ifeq (${PKG_CONFIG},${EMPTY})
 $(error Failed to find pkg-config. Please install pkg-config)
 endif
 
-CFLAGS+=$(shell ${PKG_CONFIG} --cflags x11 xinerama )
-LDADD+=$(shell ${PKG_CONFIG} --libs x11 xinerama )
+CFLAGS+=$(shell ${PKG_CONFIG} --cflags x11 xinerama xrandr )
+LDADD+=$(shell ${PKG_CONFIG} --libs x11 xinerama  xrandr )
 
 ifeq (${LDADD},${EMPTY})
 $(error Failed to find the required dependencies: x11, xinerama )
