@@ -1,0 +1,129 @@
+.TH XININFO 1 xininfo
+.SH NAME
+.PP
+xininfo \- a tool to query the layout and size of each configured monitor.
+.SH SYNOPSIS
+.PP
+\fBxininfo\fP [\-monitor \fIid\fP] [\-active\-mon] [\-mon\-size] [ \-mon\-width ] [ \-mon\-height ] [ \-mon\-x ] 
+[ \-mon\-y ] [ \-mon\-pos ] [ \-num\-mon ] [ \-max\-mon\-width ] [ \-max\-mon\-height ] [ \-print ]
+.SH DESCRIPTION
+.PP
+\fBxininfo\fP is an X11 utility to query the current layout and size of each configured monitor. It is
+designed to be used by scripts.
+.SH License
+.PP
+MIT/X11
+.SH USAGE
+.PP
+\fBxininfo\fP accepts the following commands. Multiple commands can be concatenated.
+All information returned is in number of pixels.
+.PP
+\fB\fCmonitor\fR \fIid\fP
+.PP
+.RS
+.nf
+Set queried monitor to *id*. By default it uses the active monitor.
+.fi
+.RE
+.PP
+\fB\fCactive\-mon\fR 
+.PP
+.RS
+.nf
+Query the *id* of the active monitor.
+**Prints**: *id* 
+.fi
+.RE
+.PP
+\fB\fCmon\-size\fR
+.PP
+.RS
+.nf
+Get the size of the monitor.
+**Prints**: *width* *height* 
+.fi
+.RE
+.PP
+\fB\fCmon\-width\fR 
+.PP
+.RS
+.nf
+Get the width of the monitor:
+**Prints**: *width*
+.fi
+.RE
+.PP
+\fB\fCmon\-height\fR 
+.PP
+.RS
+.nf
+Get the height of the monitor:
+**Prints**: *height*
+.fi
+.RE
+.PP
+\fB\fCmon\-x\fR 
+.PP
+.RS
+.nf
+Get the x position of the monitor:
+**Prints**: *x*
+.fi
+.RE
+.PP
+\fB\fCmon\-y\fR 
+.PP
+.RS
+.nf
+Get the y position of the monitor:
+**Prints**: *y*
+.fi
+.RE
+.PP
+\fB\fCmon\-pos\fR 
+.PP
+.RS
+.nf
+Get the position of the monitor:
+**Prints**: *x* *y*
+.fi
+.RE
+.PP
+\fB\fCnum\-mon\fR 
+.PP
+.RS
+.nf
+Queries the number of configured monitors.
+**Prints**: *#monitors*
+.fi
+.RE
+.PP
+\fB\fCmax\-mon\-width\fR 
+.PP
+.RS
+.nf
+Query width of the monitor with the most horizontal pixels
+**Prints**: *width*
+.fi
+.RE
+.PP
+\fB\fCmax\-mon\-height\fR 
+.PP
+.RS
+.nf
+Query height of the monitor with the most vertical pixels
+**Prints**: *width*
+.fi
+.RE
+.PP
+\fB\fCprint\fR 
+.PP
+.RS
+.nf
+Print out all information in a human readable format.
+.fi
+.RE
+.SH AUTHOR
+.PP
+Qball Cow 
+\[la]qball@gmpclient.org\[ra]

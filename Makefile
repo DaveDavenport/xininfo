@@ -17,7 +17,7 @@ BUILD_DIR=build
 SOURCES=$(wildcard $(SOURCE_DIR)/*.c $(CONFIG_DIR)/*.c )
 OBJECTS=$(SOURCES:%.c=$(BUILD_DIR)/%.o)
 HEADERS=$(wildcard include/*.h)
-OTHERS=Makefile LICENSE
+OTHERS=Makefile LICENSE doc/xininfo.1 doc/xininfo.markdown
 
 INSTALL_PROGRAM=$(BIN_DIR)/$(PROGRAM)
 
