@@ -7,7 +7,7 @@ xininfo - a tool to query the layout and size of each configured monitor.
 ## SYNOPSIS
 
 **xininfo** [-monitor *id*] [-active-mon] [-mon-size] [ -mon-width ] [ -mon-height ] [ -mon-x ] 
-[ -mon-y ] [ -mon-pos ] [ -num-mon ] [ -max-mon-width ] [ -max-mon-height ] [ -print ]
+[ -mon-y ] [ -mon-pos ] [ -num-mon ] [ -max-mon-width ] [ -max-mon-height ] [ -print ] [-help]
 
 
 
@@ -92,6 +92,12 @@ All information returned is in number of pixels.
 `print` 
 
     Print out all information in a human readable format.
+
+`-h`
+`-help`
+
+    Show the manpage of **xininfo**
+
 
 ## AUTHOR
 

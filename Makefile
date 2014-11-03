@@ -1,9 +1,11 @@
 QUIET?=@
-CFLAGS?=-Wall -Wextra -O3 -g 
+CFLAGS?=-Wall -Wextra -O3 -g
 VERSION?=0.14.2
 
 PROGRAM=xininfo
 
+MANPAGE_SOURCE=$(PROGRAM).markdown
+MANPAGE=$(PROGRAM).1
 
 PREFIX?=$(DESTDIR)/usr
 BIN_DIR?=$(PREFIX)/bin
@@ -20,6 +22,7 @@ HEADERS=$(wildcard include/*.h)
 OTHERS=Makefile LICENSE doc/xininfo.1 doc/xininfo.markdown
 
 INSTALL_PROGRAM=$(BIN_DIR)/$(PROGRAM)
+INSTALL_MANPAGE=$(PREFIX)/share/man/man1/$(MANPAGE)
 
 
 DIST_TARGET=$(BUILD_DIR)/$(PROGRAM)-$(VERSION).tar.xz
@@ -27,7 +30,7 @@ DIST_TARGET=$(BUILD_DIR)/$(PROGRAM)-$(VERSION).tar.xz
 
 CFLAGS+=-std=c99
 CFLAGS+=-Iinclude/
-CFLAGS+=-DVERSION="\"$(VERSION)\""
+CFLAGS+=-DVERSION="\"$(VERSION)\"" -DMANPAGE_PATH="\"$(INSTALL_MANPAGE)\""
 
 LDADD=-lm
 # Check deps.
@@ -67,6 +70,7 @@ $(BUILD_DIR):
 	$(QUIET)mkdir -p $@
 	$(QUIET)mkdir -p $@/$(SOURCE_DIR)
 	$(QUIET)mkdir -p $@/$(CONFIG_DIR)
+	$(QUIET)mkdir -p $@/$(DOC_DIR)
 
 # Objects depend on header files and makefile too.
 $(BUILD_DIR)/%.o: %.c Makefile $(HEADERS) | $(BUILD_DIR)
@@ -77,11 +81,19 @@ $(BUILD_DIR)/$(PROGRAM): $(OBJECTS)
 	$(info Linking   $@)
 	$(QUIET)$(CC) -o $@ $^  $(LDADD) $(LDFLAGS)
 
+$(BUILD_DIR)/$(DOC_DIR)/$(MANPAGE): $(DOC_DIR)/$(MANPAGE_SOURCE)
+	$(info geerate manpage $^-> $@)
+	$(QUIET)md2man-roff $^ > $@
+
 $(INSTALL_PROGRAM): $(BUILD_DIR)/$(PROGRAM)
 	$(info Install   $^ -> $@ )
-	$(QUIET)install -Dm 755 $^ $@ 
+	$(QUIET)install -Dm 755 $^ $@
 
-install: $(INSTALL_PROGRAM)
+$(INSTALL_MANPAGE): $(BUILD_DIR)/$(DOC_DIR)/$(MANPAGE)
+	$(info Install   $^ -> $@ )
+	$(QUIET)install -Dm 755 $^ $@
+
+install: $(INSTALL_PROGRAM) $(INSTALL_MANPAGE)
 
 clean:
 	$(info Clean build dir)
@@ -99,6 +111,6 @@ $(BUILD_DIR)/$(PROGRAM)-$(VERSION): $(SOURCES) $(HEADERS) $(OTHERS) | $(BUILD_DI
 	$(QUIET)cp -a --parents $^ $@
 
 
-$(DIST_TARGET): $(BUILD_DIR)/$(PROGRAM)-$(VERSION) 
+$(DIST_TARGET): $(BUILD_DIR)/$(PROGRAM)-$(VERSION)
 	$(info Creating release tarball: $@)
 	$(QUIET) tar -C $(BUILD_DIR) -cavvJf $@ $(PROGRAM)-$(VERSION)

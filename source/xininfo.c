@@ -287,10 +287,25 @@ int X11_oops( Display *display, XErrorEvent *ee )
     return xerror( display, ee );
 }
 
+static void help ()
+{
+    int code = execlp ( "man", "man", MANPAGE_PATH, NULL );
+
+    if ( code == -1 ) {
+        fprintf ( stderr, "Failed to execute man: %s\n", strerror ( errno ) );
+    }
+}
+
 
 int main ( int argc, char **argv )
 {
     Display *display;
+
+    if(find_arg(argc, argv, "-h") >= 0 || find_arg(argc, argv, "-help") >= 0) {
+        help();
+        return 0;
+    }
+
 
     // Get DISPLAY
     const char *display_str= getenv( "DISPLAY" );
