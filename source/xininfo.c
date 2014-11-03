@@ -358,14 +358,16 @@ int main ( int argc, char **argv )
         printf( "%u\n", mmb_screen->num_monitors );
     }
 
-    if ( find_arg( argc, argv, "--max-mon-width" ) >= 0 ) {
+    if ( find_arg( argc, argv, "--max-mon-width" ) >= 0 ||
+            find_arg( argc, argv, "-max-mon-width" ) >= 0 ) {
         int maxw = 0;
         for ( int i = 0; i < mmb_screen->num_monitors; i++ ){
             maxw = MAX(maxw, mmb_screen->monitors[i].w);
         }
         printf("%i\n", maxw);
     }
-    if ( find_arg( argc, argv, "--max-mon-height" ) >= 0 ) {
+    if ( find_arg( argc, argv, "--max-mon-height" ) >= 0 || 
+            find_arg( argc, argv, "-max-mon-height" ) >= 0 ) {
         int maxh = 0;
         for ( int i = 0; i < mmb_screen->num_monitors; i++ ){
             maxh = MAX(maxh, mmb_screen->monitors[i].h);
