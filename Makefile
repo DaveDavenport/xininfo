@@ -7,6 +7,9 @@ PROGRAM=xininfo
 MANPAGE_SOURCE=$(PROGRAM).markdown
 MANPAGE=$(PROGRAM).1
 
+# Load config file.
+-include config.mk
+
 PREFIX?=$(DESTDIR)/usr
 BIN_DIR?=$(PREFIX)/bin
 
@@ -63,6 +66,9 @@ $(error Failed to find the required dependencies: x11, xinerama )
 endif
 
 
+$(shell echo "PREFIX?=$(PREFIX)"> config.mk)
+
+
 all: $(BUILD_DIR)/$(PROGRAM)
 
 $(BUILD_DIR):
@@ -82,7 +88,7 @@ $(BUILD_DIR)/$(PROGRAM): $(OBJECTS)
 	$(QUIET)$(CC) -o $@ $^  $(LDADD) $(LDFLAGS)
 
 $(BUILD_DIR)/$(DOC_DIR)/$(MANPAGE): $(DOC_DIR)/$(MANPAGE_SOURCE)
-	$(info geerate manpage $^-> $@)
+	$(info generate manpage $^-> $@)
 	$(QUIET)md2man-roff $^ > $@
 
 $(INSTALL_PROGRAM): $(BUILD_DIR)/$(PROGRAM)
