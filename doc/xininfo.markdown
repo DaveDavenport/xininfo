@@ -26,82 +26,82 @@ MIT/X11
 **xininfo** accepts the following commands. Multiple commands can be concatenated.
 All information returned is in number of pixels.
 
-`monitor` *id*
+`-monitor` *id*
     
-    Set queried monitor to *id*. By default it uses the active monitor.
+Set queried monitor to *id*. By default it uses the active monitor.
 
-`active-mon` 
+`-active-mon` 
 
-    Query the *id* of the active monitor.
+Query the *id* of the active monitor.
 
-    **Prints**: *id* 
+**Prints**: *id* 
     
-`mon-size`
+`-mon-size`
 
-    Get the size of the monitor.
+Get the size of the monitor.
 
-    **Prints**: *width* *height* 
+**Prints**: *width* *height* 
 
-`mon-width` 
+`-mon-width` 
 
-    Get the width of the monitor:
+Get the width of the monitor:
 
-    **Prints**: *width*
+**Prints**: *width*
 
-`mon-height` 
+`-mon-height` 
 
-    Get the height of the monitor:
+Get the height of the monitor:
 
-    **Prints**: *height*
+**Prints**: *height*
 
-`mon-x` 
+`-mon-x` 
 
-    Get the x position of the monitor:
+Get the x position of the monitor:
 
-    **Prints**: *x*
+**Prints**: *x*
 
-`mon-y` 
+`-mon-y` 
 
-    Get the y position of the monitor:
+Get the y position of the monitor:
 
-    **Prints**: *y*
+**Prints**: *y*
 
-`mon-pos` 
+`-mon-pos` 
 
-    Get the position of the monitor:
+Get the position of the monitor:
 
-    **Prints**: *x* *y*
+**Prints**: *x* *y*
 
-`num-mon` 
+`-num-mon` 
 
-    Queries the number of configured monitors.
+Queries the number of configured monitors.
 
-    **Prints**: *#monitors*
+**Prints**: *#monitors*
 
-`max-mon-width` 
+`-max-mon-width` 
 
-    Query width of the monitor with the most horizontal pixels
+Query width of the monitor with the most horizontal pixels
 
-    **Prints**: *width*
+**Prints**: *width*
 
-`max-mon-height` 
+`-max-mon-height` 
 
-    Query height of the monitor with the most vertical pixels
+Query height of the monitor with the most vertical pixels
 
-    **Prints**: *width*
+**Prints**: *width*
 
-`print` 
+`-print` 
 
-    Print out all information in a human readable format.
+Print out all information in a human readable format.
 
 `-name` 
     
-    Print the xrandr name of the monitor.
+Print the xrandr name of the monitor.
 
 `-h`
 `-help`
 
-    Show the manpage of **xininfo**
+Show the manpage of **xininfo**
 
 
 ## AUTHOR
