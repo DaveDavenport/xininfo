@@ -324,6 +324,9 @@ static void info( const MMB_Screen *screen, Display *display )
 
             if ( info ) {
                 if ( info->connection == RR_Connected ) {
+                    // Check if there is a crtc assigned to this.
+                    if ( info->crtc == None )  continue;
+
                     XRRCrtcInfo *ci = XRRGetCrtcInfo( display, rs, info->crtc );
 
                     for ( int m =0; m < screen->num_monitors; m++ ) {
