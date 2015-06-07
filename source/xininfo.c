@@ -293,7 +293,7 @@ static void mmb_screen_print( const MMB_Screen *screen )
 
 // X error handler
 static int ( *xerror )( Display *, XErrorEvent * );
-int X11_oops( Display *display, XErrorEvent *ee )
+static int X11_oops( Display *display, XErrorEvent *ee )
 {
     if ( ee->error_code == BadWindow
          || ( ee->request_code == X_GrabButton && ee->error_code == BadAccess )
@@ -357,7 +357,7 @@ static MMB_Screen *mmb_screen = NULL;
 /**
  *  Function to handle arguments.
  */
-int handle_arg( Display *display, int argc, char **argv )
+static int handle_arg( Display *display, int argc, char **argv )
 {
     if ( argc > 0 && strcmp( argv[0],"-monitor" ) == 0 ) {
         monitor_pos = atoi( argv[1] );
