@@ -10,6 +10,7 @@ LIBS=\
     @xft_LIBS@\
     @x11_LIBS@\
     @xinerama_LIBS@\
+    @xext_LIBS@\
 	@xrandr_LIBS@
 
 AM_CFLAGS=\
@@ -17,6 +18,7 @@ AM_CFLAGS=\
     @xft_CFLAGS@\
     @x11_CFLAGS@\
     @xinerama_CFLAGS@\
+    @xext_CFLAGS@\
 	@xrandr_CFLAGS@\
     -DMANPAGE_PATH="\"$(mandir)/\""\
     -I$(top_builddir)/\

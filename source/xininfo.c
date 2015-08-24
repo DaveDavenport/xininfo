@@ -43,6 +43,7 @@
 #include <X11/Xproto.h>
 #include <X11/extensions/Xrandr.h>
 #include <X11/extensions/Xinerama.h>
+#include <X11/extensions/dpms.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -351,6 +352,69 @@ static void info( const MMB_Screen *screen, Display *display )
 
 }
 
+static void dpms_state ( Display *display )
+{
+    BOOL state;
+    CARD16 pl;
+    if(DPMSInfo(display, &pl,  &state)) {
+        if(state) {
+            switch(pl) {
+                case DPMSModeOn:
+                    printf("on\n");
+                    break;
+                case DPMSModeStandby:
+                    printf("standby\n");
+                    break;
+                case DPMSModeSuspend:
+                    printf("suspend\n");
+                    break;
+                case DPMSModeOff:
+                    printf("off\n");
+                    break;
+                default:
+                    printf("n/a");
+            }
+        } else {
+            printf("n/a\n");
+        }
+    }else {
+        // No DPMS available.
+        printf("n/a\n");
+    }
+}
+
+static void dpms_print ( Display *display )
+{
+    BOOL state;
+    CARD16 pl;
+    if(DPMSInfo(display, &pl,  &state)) {
+        printf("dpms: enabled\ndpms state: ");
+        if(state) {
+            switch(pl) {
+                case DPMSModeOn:
+                    printf("on\n");
+                    break;
+                case DPMSModeStandby:
+                    printf("standby\n");
+                    break;
+                case DPMSModeSuspend:
+                    printf("suspend\n");
+                    break;
+                case DPMSModeOff:
+                    printf("off\n");
+                    break;
+                default:
+                    printf("n/a");
+            }
+        } else {
+            printf("dpms: disabled\n");
+        }
+    }else {
+        // No DPMS available.
+        printf("n/a\n");
+    }
+}
+
 static int monitor_pos = 0;
 static MMB_Screen *mmb_screen = NULL;
 
@@ -417,6 +481,10 @@ static int handle_arg( Display *display, int argc, char **argv )
         printf( "%i\n", maxh );
     } else if ( strcmp( argv[0], "-print" ) == 0 ) {
         mmb_screen_print( mmb_screen );
+    } else if ( strcmp ( argv[0], "-dpms" ) == 0 ) {
+        dpms_print(display);
+    } else if ( strcmp ( argv[0], "-dpms-monitor-state" ) == 0 ) {
+        dpms_state(display);
     }
 
     return 0;
