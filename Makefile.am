@@ -30,7 +30,5 @@ indent: $(xininfo_SOURCES)
 	uncrustify -c $(top_srcdir)/data/uncrustify.cfg --replace $^
 
 .PHONY: update-manpage
-update-manpage: $(top_srcdir)/doc/xininfo.1
-
-$(top_srcdir)/doc/xininfo.1: $(top_srcdir)/doc/xininfo.markdown
-	ronn --roff --pipe $^ > $@
+update-manpage:
+	ronn --roff --pipe $(top_srcdir)/doc/xininfo.markdown > $(top_srcdir)/doc/xininfo.1
