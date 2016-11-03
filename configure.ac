@@ -27,7 +27,7 @@ PKG_CHECK_MODULES([x11], [x11])
 PKG_CHECK_MODULES([xext], [xext])
 PKG_CHECK_MODULES([xinerama], [xinerama])
 PKG_CHECK_MODULES([xrandr], [xrandr])
-PKG_CHECK_MODULES([xcb], [ xcb-aux xcb-randr xcb-xinerama xcb-dpms ])
+PKG_CHECK_MODULES([xcb], [ xcb-aux xcb-randr xcb-xinerama xcb-dpms xcb-ewmh ])
 
 AC_SUBST([EXTRA_CFLAGS], ["-Wall -Wextra -Wparentheses -Winline -pedantic"])
 

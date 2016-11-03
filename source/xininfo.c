@@ -41,6 +41,7 @@
 #include <xcb/randr.h>
 #include <xcb/xinerama.h>
 #include <xcb/dpms.h>
+#include <xcb/xcb_ewmh.h>
 #define MAX( a, b )                                ( ( a ) > ( b ) ? ( a ) : ( b ) )
 #define MIN( a, b )                                ( ( a ) < ( b ) ? ( a ) : ( b ) )
 #define NEAR( a, o, b )                            ( ( b ) > ( a ) - ( o ) && ( b ) < ( a ) + ( o ) )
@@ -49,6 +50,12 @@
 
 #define TRUE     1
 #define FALSE    0
+
+xcb_connection_t      *connection = NULL;
+xcb_screen_t          *screen = NULL;
+xcb_ewmh_connection_t ewmh;
+int                   screen_nbr = 0;
+int                   active_mon = 0;
 // CLI: argument parsing
 static int find_arg ( const int argc, char * const argv[], const char * const key )
 {
@@ -85,21 +92,39 @@ typedef struct
 } MMB_Screen;
 
 // find active_monitor pointer location
-void x11_build_monitor_layout ( xcb_connection_t *connection, xcb_screen_t *screen, MMB_Screen *mmc );
+void x11_build_monitor_layout ( MMB_Screen *mmc );
 
-static int pointer_get ( xcb_connection_t *connection, xcb_window_t root, int *x, int *y )
+static int pointer_get ( MMB_Screen *screen, xcb_window_t root )
 {
-    *x = 0;
-    *y = 0;
     xcb_query_pointer_cookie_t c  = xcb_query_pointer ( connection, root );
     xcb_query_pointer_reply_t  *r = xcb_query_pointer_reply ( connection, c, NULL );
     if ( r ) {
-        *x = r->root_x;
-        *y = r->root_y;
+        screen->active_monitor.x = r->root_x;
+        screen->active_monitor.y = r->root_y;
         free ( r );
         return TRUE;
     }
 
+    return FALSE;
+}
+static int mmb_screen_get_current_desktop ( MMB_Screen *screen )
+{
+    unsigned int              current_desktop = 0;
+    xcb_get_property_cookie_t gcdc;
+    gcdc = xcb_ewmh_get_current_desktop ( &ewmh, screen_nbr );
+    if  ( xcb_ewmh_get_current_desktop_reply ( &ewmh, gcdc, &current_desktop, NULL ) ) {
+        xcb_get_property_cookie_t             c = xcb_ewmh_get_desktop_viewport ( &ewmh, screen_nbr );
+        xcb_ewmh_get_desktop_viewport_reply_t vp;
+        if ( xcb_ewmh_get_desktop_viewport_reply ( &ewmh, c, &vp, NULL ) ) {
+            if ( current_desktop < vp.desktop_viewport_len ) {
+                screen->active_monitor.x = vp.desktop_viewport[current_desktop].x;
+                screen->active_monitor.y = vp.desktop_viewport[current_desktop].y;
+                xcb_ewmh_get_desktop_viewport_reply_wipe ( &vp );
+                return TRUE;
+            }
+            xcb_ewmh_get_desktop_viewport_reply_wipe ( &vp );
+        }
+    }
     return FALSE;
 }
 
@@ -110,22 +135,22 @@ static int pointer_get ( xcb_connection_t *connection, xcb_window_t root, int *x
  *
  * @returns filled in MMB_Screen
  */
-static MMB_Screen *mmb_screen_create ( xcb_connection_t *connection, int screen_nbr )
+static MMB_Screen *mmb_screen_create ( int screen_nbr )
 {
     // Create empty structure.
     MMB_Screen *retv = malloc ( sizeof ( *retv ) );
     memset ( retv, 0, sizeof ( *retv ) );
 
-    xcb_screen_t *screen = xcb_aux_get_screen ( connection, screen_nbr );
+    screen = xcb_aux_get_screen ( connection, screen_nbr );
     retv->base.w = screen->width_in_pixels;
     retv->base.h = screen->height_in_pixels;
 
-    x11_build_monitor_layout ( connection, screen, retv );
+    x11_build_monitor_layout ( retv );
     // monitor_active
-    int x, y;
-    if ( pointer_get ( connection, screen->root, &x, &y ) ) {
-        retv->active_monitor.x = x;
-        retv->active_monitor.y = y;
+    if ( !mmb_screen_get_current_desktop ( retv ) ) {
+        if ( pointer_get ( retv, screen->root ) ) {
+            fprintf ( stderr, "Failed to find monitor\n" );
+        }
     }
 
     return retv;
@@ -133,7 +158,7 @@ static MMB_Screen *mmb_screen_create ( xcb_connection_t *connection, int screen_
 /**
  * Create monitor based on output id
  */
-static MMB_Rectangle * x11_get_monitor_from_output ( xcb_connection_t *connection, xcb_randr_output_t out )
+static MMB_Rectangle * x11_get_monitor_from_output ( xcb_randr_output_t out )
 {
     xcb_randr_get_output_info_reply_t  *op_reply;
     xcb_randr_get_crtc_info_reply_t    *crtc_reply;
@@ -167,7 +192,7 @@ static MMB_Rectangle * x11_get_monitor_from_output ( xcb_connection_t *connectio
     return retv;
 }
 
-static void x11_build_monitor_layout_xinerama ( xcb_connection_t *connection, MMB_Screen *mmc )
+static void x11_build_monitor_layout_xinerama ( MMB_Screen *mmc )
 {
     xcb_xinerama_query_screens_cookie_t screens_cookie = xcb_xinerama_query_screens_unchecked ( connection );
 
@@ -194,7 +219,7 @@ static void x11_build_monitor_layout_xinerama ( xcb_connection_t *connection, MM
 
     free ( screens_reply );
 }
-static int x11_is_extension_present ( xcb_connection_t *connection, const char *extension )
+static int x11_is_extension_present ( const char *extension )
 {
     xcb_query_extension_cookie_t randr_cookie = xcb_query_extension ( connection, strlen ( extension ), extension );
     xcb_query_extension_reply_t  *randr_reply = xcb_query_extension_reply ( connection, randr_cookie, NULL );
@@ -203,13 +228,13 @@ static int x11_is_extension_present ( xcb_connection_t *connection, const char *
     return present;
 }
 
-void x11_build_monitor_layout ( xcb_connection_t *connection, xcb_screen_t *screen, MMB_Screen *mmc )
+void x11_build_monitor_layout ( MMB_Screen *mmc )
 {
     // If RANDR is not available, try Xinerama
-    if ( !x11_is_extension_present ( connection, "RANDR" ) ) {
+    if ( !x11_is_extension_present ( "RANDR" ) ) {
         // Check if xinerama is available.
-        if ( x11_is_extension_present ( connection, "XINERAMA" ) ) {
-            x11_build_monitor_layout_xinerama ( connection, mmc );
+        if ( x11_is_extension_present ( "XINERAMA" ) ) {
+            x11_build_monitor_layout_xinerama ( mmc );
             return;
         }
         fprintf ( stderr, "No RANDR or Xinerama available for getting monitor layout." );
@@ -231,7 +256,7 @@ void x11_build_monitor_layout ( xcb_connection_t *connection, xcb_screen_t *scre
     xcb_randr_get_output_primary_reply_t  *pc_rep = xcb_randr_get_output_primary_reply ( connection, pc, NULL );
 
     for ( int i = mon_num - 1; i >= 0; i-- ) {
-        MMB_Rectangle *w = x11_get_monitor_from_output ( connection, ops[i] );
+        MMB_Rectangle *w = x11_get_monitor_from_output ( ops[i] );
         if ( w ) {
             mmc->monitors                    = realloc ( mmc->monitors, ( mmc->num_monitors + 1 ) * sizeof ( MMB_Rectangle* ) );
             mmc->monitors[mmc->num_monitors] = w;
@@ -324,7 +349,7 @@ static void help ()
     }
 }
 
-static void dpms_state ( xcb_connection_t *connection )
+static void dpms_state ( void )
 {
     xcb_dpms_capable_cookie_t c  = xcb_dpms_capable ( connection );
     xcb_dpms_capable_reply_t  *r = xcb_dpms_capable_reply ( connection, c, NULL );
@@ -365,7 +390,7 @@ static void dpms_state ( xcb_connection_t *connection )
     }
 }
 
-static void dpms_print ( xcb_connection_t *connection )
+static void dpms_print ( void )
 {
     xcb_dpms_capable_cookie_t c  = xcb_dpms_capable ( connection );
     xcb_dpms_capable_reply_t  *r = xcb_dpms_capable_reply ( connection, c, NULL );
@@ -412,7 +437,7 @@ static MMB_Screen *mmb_screen = NULL;
 /**
  *  Function to handle arguments.
  */
-static int handle_arg ( xcb_connection_t *connection, int argc, char **argv )
+static int handle_arg ( int argc, char **argv )
 {
     if ( argc > 0 && strcmp ( argv[0], "-monitor" ) == 0 ) {
         monitor_pos = atoi ( argv[1] );
@@ -431,8 +456,7 @@ static int handle_arg ( xcb_connection_t *connection, int argc, char **argv )
         return 1;
     }
     else if ( strcmp ( argv[0], "-active-mon" ) == 0 ) {
-        unsigned int mon = mmb_screen_get_active_monitor ( mmb_screen );
-        printf ( "%d\n", mon );
+        printf ( "%d\n", active_mon );
     }
     else if ( strcmp ( argv[0], "-mon-size" ) == 0 ) {
         printf ( "%i %i\n", mmb_screen->monitors[monitor_pos]->w, mmb_screen->monitors[monitor_pos]->h );
@@ -487,10 +511,10 @@ static int handle_arg ( xcb_connection_t *connection, int argc, char **argv )
         mmb_screen_print ( mmb_screen );
     }
     else if ( strcmp ( argv[0], "-dpms" ) == 0 ) {
-        dpms_print ( connection );
+        dpms_print ( );
     }
     else if ( strcmp ( argv[0], "-dpms-monitor-state" ) == 0 ) {
-        dpms_state ( connection );
+        dpms_state ( );
     }
 
     return 0;
@@ -504,23 +528,32 @@ int main ( int argc, char **argv )
     }
 
     // Get DISPLAY
-    const char       *display_str = getenv ( "DISPLAY" );
-    int              screen_nbr   = 0;
-    xcb_connection_t *connection  = xcb_connect ( display_str, &screen_nbr );
+    const char *display_str = getenv ( "DISPLAY" );
+    connection = xcb_connect ( display_str, &screen_nbr );
     if ( xcb_connection_has_error ( connection ) ) {
         fprintf ( stderr, "Failed to open display: %s", display_str );
         return EXIT_FAILURE;
     }
+    xcb_intern_atom_cookie_t *ac     = xcb_ewmh_init_atoms ( connection, &ewmh );
+    xcb_generic_error_t      *errors = NULL;
+    xcb_ewmh_init_atoms_replies ( &ewmh, ac, &errors );
+    if ( errors ) {
+        fprintf ( stderr, "Failed to create EWMH atoms\n" );
+        free ( errors );
+    }
 
     // Get monitor layout. (xinerama aware)
-    mmb_screen = mmb_screen_create ( connection, screen_nbr );
+    mmb_screen = mmb_screen_create ( screen_nbr );
+
+    active_mon = mmb_screen_get_active_monitor ( mmb_screen );
 
     for ( int ac = 1; ac < argc; ac++ ) {
         //
-        ac += handle_arg ( connection, argc - ac, &argv[ac] );
+        ac += handle_arg ( argc - ac, &argv[ac] );
     }
 
     // Cleanup
     mmb_screen_free ( &mmb_screen );
+    xcb_ewmh_connection_wipe ( &( ewmh ) );
     xcb_disconnect ( connection );
 }
