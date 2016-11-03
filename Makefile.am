@@ -16,10 +16,21 @@ AM_CFLAGS=\
     -I$(top_builddir)/\
 	-Werror=missing-prototypes
 
+EXTRA_DIST=\
+		   doc/xininfo.markdown
+
 xininfo_SOURCES=\
     source/xininfo.c
+
+dist_man1_MANS=\
+			doc/xininfo.1
 
 .PHONY: indent
 indent: $(xininfo_SOURCES)
 	uncrustify -c $(top_srcdir)/data/uncrustify.cfg --replace $^
 
+.PHONY: update-manpage
+update-manpage: $(top_srcdir)/doc/xininfo.1
+
+$(top_srcdir)/doc/xininfo.1: $(top_srcdir)/doc/xininfo.markdown
+	ronn --roff --pipe $^ > $@
