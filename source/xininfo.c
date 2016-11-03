@@ -42,6 +42,8 @@
 #include <xcb/xinerama.h>
 #include <xcb/dpms.h>
 #include <xcb/xcb_ewmh.h>
+#include <xcb/screensaver.h>
+
 #define MAX( a, b )                                ( ( a ) > ( b ) ? ( a ) : ( b ) )
 #define MIN( a, b )                                ( ( a ) < ( b ) ? ( a ) : ( b ) )
 #define NEAR( a, o, b )                            ( ( b ) > ( a ) - ( o ) && ( b ) < ( a ) + ( o ) )
@@ -52,7 +54,7 @@
 #define FALSE    0
 
 xcb_connection_t      *connection = NULL;
-xcb_screen_t          *screen = NULL;
+xcb_screen_t          *screen     = NULL;
 xcb_ewmh_connection_t ewmh;
 int                   screen_nbr = 0;
 int                   active_mon = 0;
@@ -141,7 +143,7 @@ static MMB_Screen *mmb_screen_create ( int screen_nbr )
     MMB_Screen *retv = malloc ( sizeof ( *retv ) );
     memset ( retv, 0, sizeof ( *retv ) );
 
-    screen = xcb_aux_get_screen ( connection, screen_nbr );
+    screen       = xcb_aux_get_screen ( connection, screen_nbr );
     retv->base.w = screen->width_in_pixels;
     retv->base.h = screen->height_in_pixels;
 
@@ -349,6 +351,42 @@ static void help ()
     }
 }
 
+static void screensaver ( void )
+{
+    if ( !x11_is_extension_present ( "MIT-SCREEN-SAVER" ) ) {
+        printf ( "unavailable\n" );
+        return;
+    }
+    xcb_screensaver_query_info_cookie_t c  = xcb_screensaver_query_info ( connection, screen->root );
+    xcb_screensaver_query_info_reply_t  *r = xcb_screensaver_query_info_reply ( connection, c, NULL );
+    if ( r ) {
+        switch ( r->state )
+        {
+        case XCB_SCREENSAVER_STATE_OFF:
+            printf ( "off\n" );
+            break;
+        case XCB_SCREENSAVER_STATE_ON:
+            printf ( "on\n" );
+            break;
+        case XCB_SCREENSAVER_STATE_CYCLE:
+            printf ( "cycle\n" );
+            break;
+        default:
+            printf ( "disabled\n" );
+            break;
+        }
+        free ( r );
+    }
+    else{
+        printf ( "n\\a\n" );
+    }
+}
+static void screensaver_print ( void )
+{
+    printf ( "screensaver:     " );
+    screensaver ();
+}
+
 static void dpms_state ( void )
 {
     xcb_dpms_capable_cookie_t c  = xcb_dpms_capable ( connection );
@@ -515,6 +553,12 @@ static int handle_arg ( int argc, char **argv )
     }
     else if ( strcmp ( argv[0], "-dpms-monitor-state" ) == 0 ) {
         dpms_state ( );
+    }
+    else if ( strcmp ( argv[0], "-screensaver" ) == 0 ) {
+        screensaver_print ( );
+    }
+    else if ( strcmp ( argv[0], "-screensaver-state" ) == 0 ) {
+        screensaver ( );
     }
 
     return 0;
