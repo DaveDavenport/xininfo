@@ -23,7 +23,6 @@ AC_USE_SYSTEM_EXTENSIONS
 ##
 PKG_PROG_PKG_CONFIG
 
-PKG_CHECK_MODULES([xft], [xft])
 PKG_CHECK_MODULES([x11], [x11])
 PKG_CHECK_MODULES([xext], [xext])
 PKG_CHECK_MODULES([xinerama], [xinerama])
