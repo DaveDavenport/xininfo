@@ -11,7 +11,8 @@ LIBS=\
     @x11_LIBS@\
     @xinerama_LIBS@\
     @xext_LIBS@\
-	@xrandr_LIBS@
+	@xrandr_LIBS@\
+	@xcb_LIBS@
 
 AM_CFLAGS=\
 	@EXTRA_CFLAGS@\
@@ -20,6 +21,7 @@ AM_CFLAGS=\
     @xinerama_CFLAGS@\
     @xext_CFLAGS@\
 	@xrandr_CFLAGS@\
+	@xcb_LIBS@\
     -DMANPAGE_PATH="\"$(mandir)/\""\
     -I$(top_builddir)/\
 	-Werror=missing-prototypes
