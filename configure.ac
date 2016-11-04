@@ -21,6 +21,7 @@ AC_USE_SYSTEM_EXTENSIONS
 ##
 # Check dependencies
 ##
+AC_CHECK_FUNC([atexit],,  AC_MSG_ERROR("Could not find atexit in c library"))
 PKG_PROG_PKG_CONFIG
 
 PKG_CHECK_MODULES([xcb], [ xcb-aux xcb-randr xcb-xinerama xcb-dpms xcb-ewmh xcb-screensaver ])

@@ -57,18 +57,6 @@ xcb_connection_t      *connection = NULL;
 xcb_screen_t          *screen     = NULL;
 xcb_ewmh_connection_t ewmh;
 int                   screen_nbr = 0;
-int                   active_mon = 0;
-// CLI: argument parsing
-static int find_arg ( const int argc, char * const argv[], const char * const key )
-{
-    int i;
-
-    for ( i = 0; i < argc && strcasecmp ( argv[i], key ); i++ ) {
-        ;
-    }
-
-    return i < argc ? i : -1;
-}
 
 // Monitor layout stuff.
 typedef struct
@@ -340,17 +328,6 @@ static void mmb_screen_print ( MMB_Screen *screen )
     printf ( "               %d-%d\n", screen->active_monitor.x, screen->active_monitor.y );
 }
 
-// X error handler
-
-static void help ()
-{
-    int code = execlp ( "man", "man", MANPAGE_PATH, NULL );
-
-    if ( code == -1 ) {
-        fprintf ( stderr, "Failed to execute man: %s\n", strerror ( errno ) );
-    }
-}
-
 static void screensaver ( void )
 {
     if ( !x11_is_extension_present ( "MIT-SCREEN-SAVER" ) ) {
@@ -469,37 +446,126 @@ static void dpms_print ( void )
         free ( ir );
     }
 }
-static int        monitor_pos = 0;
-static MMB_Screen *mmb_screen = NULL;
 
+static int           monitor_pos   = 0;
+static MMB_Screen    *mmb_screen   = NULL;
+static MMB_Rectangle *selected_mon = NULL;
+
+static void set_monitor ( char **argv )
+{
+    monitor_pos = atoi ( argv[1] );
+
+    if ( !( monitor_pos >= 0 && monitor_pos < mmb_screen->num_monitors ) ) {
+        fprintf ( stderr, "Invalid monitor: %d (0 <= %d < %d failed)\n",
+                  monitor_pos,
+                  monitor_pos,
+                  mmb_screen->num_monitors );
+        // Cleanup
+        exit ( EXIT_FAILURE );
+    }
+    selected_mon = mmb_screen->monitors[monitor_pos];
+}
+static void print_active_mon ( char **argv )
+{
+    (void ) ( argv );
+    int active_mon = mmb_screen_get_active_monitor ( mmb_screen );
+    printf ( "%d\n", active_mon );
+}
+static void print_mon_size ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "%i %i\n", selected_mon->w, selected_mon->h );
+}
+static void print_mon_width ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "%d\n", selected_mon->w );
+}
+static void print_mon_height ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "%d\n", selected_mon->h );
+}
+
+static void print_help ( char ** );
+typedef struct _CmdOptions
+{
+    const char *handle;
+    const int  n_args;
+    void ( *callback )( char **start );
+    const char *description;
+} CmdOptions;
+
+static const CmdOptions options[] = {
+    {
+        .handle      = "-monitor",
+        .n_args      = 1,
+        .callback    = set_monitor,
+        .description = "Select monitor by id. By default it uses the active monitor as indicated by the window manager."
+    },
+    {
+        .handle      = "-active-mon",
+        .n_args      = 0,
+        .callback    = print_active_mon,
+        .description = "Print the monitor id indicated by the window manager to hold the focus."
+    },
+    {
+        .handle      = "-mon-size",
+        .n_args      = 0,
+        .callback    = print_mon_size,
+        .description = ""
+    },
+    {
+        .handle      = "-mon-width",
+        .n_args      = 0,
+        .callback    = print_mon_width,
+        .description = ""
+    },
+    {
+        .handle      = "-mon-height",
+        .n_args      = 0,
+        .callback    = print_mon_height,
+        .description = ""
+    },
+
+    {
+        .handle      = "-h",
+        .n_args      = 0,
+        .callback    = print_help,
+        .description = "Print this help message."
+    },
+};
+const unsigned int      num_options = sizeof ( options ) / sizeof ( CmdOptions );
+
+static void print_help ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "Command line arguments:\n" );
+    for ( unsigned int i = 0; i < num_options; i++ ) {
+        printf ( " %*s %s -  %s\n", 20, options[i].handle, options[i].n_args > 0 ? "{arguments}" : "           ", options[i].description );
+    }
+    printf ( "\n" );
+    printf ( "These arguments can be chained, e.g. xininfo -monitor 1 -mon-size -monitor 2 -mon-size.\n" );
+    printf ( "Will print first the size of monitor 1 then monitor 2.\n" );
+}
 /**
  *  Function to handle arguments.
  */
 static int handle_arg ( int argc, char **argv )
 {
-    if ( argc > 0 && strcmp ( argv[0], "-monitor" ) == 0 ) {
-        monitor_pos = atoi ( argv[1] );
-
-        if ( !( monitor_pos >= 0 && monitor_pos < mmb_screen->num_monitors ) ) {
-            fprintf ( stderr, "Invalid monitor: %d (0 <= %d < %d failed)\n",
-                      monitor_pos,
-                      monitor_pos,
-                      mmb_screen->num_monitors );
-            // Cleanup
-            mmb_screen_free ( &mmb_screen );
-            xcb_disconnect ( connection );
-            exit ( EXIT_FAILURE );
+    for ( unsigned int i = 0; i < num_options; i++ ) {
+        if ( strcmp ( options[i].handle, argv[0] ) == 0 ) {
+            if ( argc > options[i].n_args ) {
+                options[i].callback ( argv );
+                return options[i].n_args;
+            }
+            else {
+                fprintf ( stderr, "Option: %s requires %d arguments.\n", options[i].handle, options[i].n_args );
+                exit ( EXIT_FAILURE );
+            }
         }
-
-        return 1;
     }
-    else if ( strcmp ( argv[0], "-active-mon" ) == 0 ) {
-        printf ( "%d\n", active_mon );
-    }
-    else if ( strcmp ( argv[0], "-mon-size" ) == 0 ) {
-        printf ( "%i %i\n", mmb_screen->monitors[monitor_pos]->w, mmb_screen->monitors[monitor_pos]->h );
-    }
-    else if ( strcmp ( argv[0], "-mon-width" ) == 0 ) {
+    if ( strcmp ( argv[0], "-mon-width" ) == 0 ) {
         printf ( "%i\n", mmb_screen->monitors[monitor_pos]->w );
     }
     else if ( strcmp ( argv[0], "-mon-height" ) == 0 ) {
@@ -564,12 +630,17 @@ static int handle_arg ( int argc, char **argv )
     return 0;
 }
 
+static void cleanup ( void )
+{
+    // Cleanup
+    mmb_screen_free ( &mmb_screen );
+    xcb_ewmh_connection_wipe ( &( ewmh ) );
+    xcb_disconnect ( connection );
+}
+
 int main ( int argc, char **argv )
 {
-    if ( find_arg ( argc, argv, "-h" ) >= 0 || find_arg ( argc, argv, "-help" ) >= 0 ) {
-        help ();
-        return 0;
-    }
+    atexit ( cleanup );
 
     // Get DISPLAY
     const char *display_str = getenv ( "DISPLAY" );
@@ -589,15 +660,17 @@ int main ( int argc, char **argv )
     // Get monitor layout. (xinerama aware)
     mmb_screen = mmb_screen_create ( screen_nbr );
 
-    active_mon = mmb_screen_get_active_monitor ( mmb_screen );
+    if ( mmb_screen->num_monitors == 0 ) {
+        fprintf ( stderr, "No monitor found.\n" );
+        return EXIT_FAILURE;
+    }
+
+    monitor_pos  = mmb_screen_get_active_monitor ( mmb_screen );
+    selected_mon = mmb_screen->monitors[monitor_pos];
 
     for ( int ac = 1; ac < argc; ac++ ) {
         //
         ac += handle_arg ( argc - ac, &argv[ac] );
     }
-
-    // Cleanup
-    mmb_screen_free ( &mmb_screen );
-    xcb_ewmh_connection_wipe ( &( ewmh ) );
-    xcb_disconnect ( connection );
+    return EXIT_SUCCESS;
 }
