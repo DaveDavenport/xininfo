@@ -328,8 +328,9 @@ static void mmb_screen_print ( MMB_Screen *screen )
     printf ( "               %d-%d\n", screen->active_monitor.x, screen->active_monitor.y );
 }
 
-static void screensaver ( void )
+static void screensaver ( char **argv )
 {
+    (void) (argv);
     if ( !x11_is_extension_present ( "MIT-SCREEN-SAVER" ) ) {
         printf ( "unavailable\n" );
         return;
@@ -358,14 +359,16 @@ static void screensaver ( void )
         printf ( "n\\a\n" );
     }
 }
-static void screensaver_print ( void )
+static void screensaver_print ( char **argv )
 {
+    (void) (argv);
     printf ( "screensaver:     " );
-    screensaver ();
+    screensaver ( NULL );
 }
 
-static void dpms_state ( void )
+static void dpms_state ( char **argv )
 {
+    (void ) ( argv );
     xcb_dpms_capable_cookie_t c  = xcb_dpms_capable ( connection );
     xcb_dpms_capable_reply_t  *r = xcb_dpms_capable_reply ( connection, c, NULL );
 
@@ -405,8 +408,9 @@ static void dpms_state ( void )
     }
 }
 
-static void dpms_print ( void )
+static void dpms_print ( char ** argv )
 {
+    (void ) ( argv );
     xcb_dpms_capable_cookie_t c  = xcb_dpms_capable ( connection );
     xcb_dpms_capable_reply_t  *r = xcb_dpms_capable_reply ( connection, c, NULL );
 
@@ -502,10 +506,47 @@ static void print_mon_pos ( char **argv )
     (void ) ( argv );
     printf ( "%i %i\n", selected_mon->x, selected_mon->y );
 }
+static void print_max_mon_width ( char **argv )
+{
+    (void ) (argv);
+    int maxw = 0;
+
+    for ( int i = 0; i < mmb_screen->num_monitors; i++ ) {
+        maxw = MAX ( maxw, mmb_screen->monitors[i]->w );
+    }
+
+    printf ( "%i\n", maxw );
+}
+static void print_max_mon_height ( char **argv )
+{
+    (void ) (argv);
+    int maxh = 0;
+
+    for ( int i = 0; i < mmb_screen->num_monitors; i++ ) {
+        maxh = MAX ( maxh, mmb_screen->monitors[i]->h );
+    }
+
+    printf ( "%i\n", maxh );
+}
+static void print_mon_name ( char **argv )
+{
+    (void ) ( argv );
+    if ( mmb_screen->monitors[monitor_pos]->name ) {
+        printf ( "%s\n", mmb_screen->monitors[monitor_pos]->name );
+    }
+    else {
+        printf ( "unknown\n" );
+    }
+}
 static void print_num_mon ( char **argv )
 {
     (void ) ( argv );
     printf ( "%u\n", mmb_screen->num_monitors );
+}
+static void print (char **argv )
+{
+    (void ) (argv);
+    mmb_screen_print ( mmb_screen );
 }
 static void print_help ( char ** );
 typedef struct _CmdOptions
@@ -542,6 +583,30 @@ static const CmdOptions options[] = {
         .description = ""
     },
     {
+        .handle      = "-max-mon-width",
+        .n_args      = 0,
+        .callback    = print_max_mon_width,
+        .description = ""
+    },
+    {
+        .handle      = "--max-mon-width",
+        .n_args      = 0,
+        .callback    = print_max_mon_width,
+        .description = ""
+    },
+    {
+        .handle      = "-max-mon-height",
+        .n_args      = 0,
+        .callback    = print_max_mon_height,
+        .description = ""
+    },
+    {
+        .handle      = "--max-mon-height",
+        .n_args      = 0,
+        .callback    = print_max_mon_height,
+        .description = ""
+    },
+    {
         .handle      = "-mon-height",
         .n_args      = 0,
         .callback    = print_mon_height,
@@ -570,6 +635,42 @@ static const CmdOptions options[] = {
         .n_args      = 0,
         .callback    = print_num_mon,
         .description = ""
+    },
+    {
+        .handle      = "-dpms",
+        .n_args      = 0,
+        .callback    = dpms_print,
+        .description = ""
+    },
+    {
+        .handle      = "-dpms-monitor-state",
+        .n_args      = 0,
+        .callback    = dpms_state,
+        .description = ""
+    },
+    {
+        .handle      = "-screensaver",
+        .n_args      = 0,
+        .callback    = screensaver_print,
+        .description = ""
+    },
+    {
+        .handle      = "-screensaver-state",
+        .n_args      = 0,
+        .callback    = screensaver,
+        .description = ""
+    },
+    {
+        .handle      = "-print",
+        .n_args      = 0,
+        .callback    = print,
+        .description = "Print monitor(s) layout."
+    },
+    {
+        .handle      = "-name",
+        .n_args      = 0,
+        .callback    = print_mon_name,
+        .description = "Print monitor name."
     },
 
 
@@ -610,50 +711,7 @@ static int handle_arg ( int argc, char **argv )
             }
         }
     }
-    if ( strcmp ( argv[0], "-name" ) == 0 ) {
-        if ( mmb_screen->monitors[monitor_pos]->name ) {
-            printf ( "%s\n", mmb_screen->monitors[monitor_pos]->name );
-        }
-        else {
-            printf ( "unknown\n" );
-        }
-    }
-    else if ( strcmp ( argv[0], "--max-mon-width" ) == 0 ||
-              strcmp ( argv[0], "-max-mon-width" ) == 0 ) {
-        int maxw = 0;
-
-        for ( int i = 0; i < mmb_screen->num_monitors; i++ ) {
-            maxw = MAX ( maxw, mmb_screen->monitors[i]->w );
-        }
-
-        printf ( "%i\n", maxw );
-    }
-    else if ( strcmp ( argv[0], "--max-mon-height" ) == 0 ||
-              strcmp ( argv[0], "-max-mon-height" ) == 0 ) {
-        int maxh = 0;
-
-        for ( int i = 0; i < mmb_screen->num_monitors; i++ ) {
-            maxh = MAX ( maxh, mmb_screen->monitors[i]->h );
-        }
-
-        printf ( "%i\n", maxh );
-    }
-    else if ( strcmp ( argv[0], "-print" ) == 0 ) {
-        mmb_screen_print ( mmb_screen );
-    }
-    else if ( strcmp ( argv[0], "-dpms" ) == 0 ) {
-        dpms_print ( );
-    }
-    else if ( strcmp ( argv[0], "-dpms-monitor-state" ) == 0 ) {
-        dpms_state ( );
-    }
-    else if ( strcmp ( argv[0], "-screensaver" ) == 0 ) {
-        screensaver_print ( );
-    }
-    else if ( strcmp ( argv[0], "-screensaver-state" ) == 0 ) {
-        screensaver ( );
-    }
-
+    fprintf(stderr, "Commandline option: '%s' not found.\n", argv[0]);
     return 0;
 }
 
