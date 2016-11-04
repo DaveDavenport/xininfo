@@ -486,7 +486,27 @@ static void print_mon_height ( char **argv )
     (void ) ( argv );
     printf ( "%d\n", selected_mon->h );
 }
+static void print_mon_x ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "%d\n", selected_mon->x );
+}
+static void print_mon_y ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "%d\n", selected_mon->y );
+}
 
+static void print_mon_pos ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "%i %i\n", selected_mon->x, selected_mon->y );
+}
+static void print_num_mon ( char **argv )
+{
+    (void ) ( argv );
+    printf ( "%u\n", mmb_screen->num_monitors );
+}
 static void print_help ( char ** );
 typedef struct _CmdOptions
 {
@@ -527,6 +547,31 @@ static const CmdOptions options[] = {
         .callback    = print_mon_height,
         .description = ""
     },
+    {
+        .handle      = "-mon-x",
+        .n_args      = 0,
+        .callback    = print_mon_x,
+        .description = ""
+    },
+    {
+        .handle      = "-mon-y",
+        .n_args      = 0,
+        .callback    = print_mon_y,
+        .description = ""
+    },
+    {
+        .handle      = "-mon-pos",
+        .n_args      = 0,
+        .callback    = print_mon_pos,
+        .description = ""
+    },
+    {
+        .handle      = "-num-mon",
+        .n_args      = 0,
+        .callback    = print_num_mon,
+        .description = ""
+    },
+
 
     {
         .handle      = "-h",
@@ -565,25 +610,7 @@ static int handle_arg ( int argc, char **argv )
             }
         }
     }
-    if ( strcmp ( argv[0], "-mon-width" ) == 0 ) {
-        printf ( "%i\n", mmb_screen->monitors[monitor_pos]->w );
-    }
-    else if ( strcmp ( argv[0], "-mon-height" ) == 0 ) {
-        printf ( "%i\n", mmb_screen->monitors[monitor_pos]->h );
-    }
-    else if ( strcmp ( argv[0], "-mon-x" ) == 0 ) {
-        printf ( "%i\n", mmb_screen->monitors[monitor_pos]->x );
-    }
-    else if ( strcmp ( argv[0], "-mon-y" ) == 0 ) {
-        printf ( "%i\n", mmb_screen->monitors[monitor_pos]->y );
-    }
-    else if ( strcmp ( argv[0], "-mon-pos" ) == 0 ) {
-        printf ( "%i %i\n", mmb_screen->monitors[monitor_pos]->x, mmb_screen->monitors[monitor_pos]->y );
-    }
-    else if ( strcmp ( argv[0], "-num-mon" ) == 0 ) {
-        printf ( "%u\n", mmb_screen->num_monitors );
-    }
-    else if ( strcmp ( argv[0], "-name" ) == 0 ) {
+    if ( strcmp ( argv[0], "-name" ) == 0 ) {
         if ( mmb_screen->monitors[monitor_pos]->name ) {
             printf ( "%s\n", mmb_screen->monitors[monitor_pos]->name );
         }
