@@ -572,91 +572,91 @@ static const CmdOptions options[] = {
         .handle      = "-mon-size",
         .n_args      = 0,
         .callback    = print_mon_size,
-        .description = ""
+        .description = "Get the size of the selected monitor."
     },
     {
         .handle      = "-mon-width",
         .n_args      = 0,
         .callback    = print_mon_width,
-        .description = ""
+        .description = "Get the width of the selected monitor."
     },
     {
         .handle      = "-max-mon-width",
         .n_args      = 0,
         .callback    = print_max_mon_width,
-        .description = ""
+        .description = "Get largest monitor width."
     },
     {
         .handle      = "--max-mon-width",
         .n_args      = 0,
         .callback    = print_max_mon_width,
-        .description = ""
+        .description = "Get the largest monitor width."
     },
     {
         .handle      = "-max-mon-height",
         .n_args      = 0,
         .callback    = print_max_mon_height,
-        .description = ""
+        .description = "Get the largest monitor height."
     },
     {
         .handle      = "--max-mon-height",
         .n_args      = 0,
         .callback    = print_max_mon_height,
-        .description = ""
+        .description = "Get the largest monitor height."
     },
     {
         .handle      = "-mon-height",
         .n_args      = 0,
         .callback    = print_mon_height,
-        .description = ""
+        .description = "Get the selected monitor height."
     },
     {
         .handle      = "-mon-x",
         .n_args      = 0,
         .callback    = print_mon_x,
-        .description = ""
+        .description = "Get the selected monitor horizontal (x) position."
     },
     {
         .handle      = "-mon-y",
         .n_args      = 0,
         .callback    = print_mon_y,
-        .description = ""
+        .description = "Get the selected monitor vertical (y) position."
     },
     {
         .handle      = "-mon-pos",
         .n_args      = 0,
         .callback    = print_mon_pos,
-        .description = ""
+        .description = "Get the selected monitor position (x y)."
     },
     {
         .handle      = "-num-mon",
         .n_args      = 0,
         .callback    = print_num_mon,
-        .description = ""
+        .description = "Get the number of enabled monitors."
     },
     {
         .handle      = "-dpms",
         .n_args      = 0,
         .callback    = dpms_print,
-        .description = ""
+        .description = "Get the dpms state."
     },
     {
         .handle      = "-dpms-monitor-state",
         .n_args      = 0,
         .callback    = dpms_state,
-        .description = ""
+        .description = "Get the dpms state (parsable)."
     },
     {
         .handle      = "-screensaver",
         .n_args      = 0,
         .callback    = screensaver_print,
-        .description = ""
+        .description = "Get the screensaver state."
     },
     {
         .handle      = "-screensaver-state",
         .n_args      = 0,
         .callback    = screensaver,
-        .description = ""
+        .description = "Get the screensaver state (parsable)"
     },
     {
         .handle      = "-print",
@@ -684,7 +684,10 @@ const unsigned int      num_options = sizeof ( options ) / sizeof ( CmdOptions )
 static void print_help ( char **argv )
 {
     (void ) ( argv );
-    printf ( "Command line arguments:\n" );
+    printf ( "xinfino usage:\n");
+    printf ( "       xininfo [-option ....]\n");
+    printf ( "\n" );
+    printf ( "Command line options:\n" );
     for ( unsigned int i = 0; i < num_options; i++ ) {
         printf ( " %*s %s -  %s\n", 20, options[i].handle, options[i].n_args > 0 ? "{arguments}" : "           ", options[i].description );
     }
