@@ -46,9 +46,7 @@
 
 #define MAX( a, b )                                ( ( a ) > ( b ) ? ( a ) : ( b ) )
 #define MIN( a, b )                                ( ( a ) < ( b ) ? ( a ) : ( b ) )
-#define NEAR( a, o, b )                            ( ( b ) > ( a ) - ( o ) && ( b ) < ( a ) + ( o ) )
-#define OVERLAP( a, b, c, d )                      ( ( ( a ) == ( c ) && ( b ) == ( d ) ) || MIN ( ( a ) + ( b ), ( c ) + ( d ) ) - MAX ( ( a ), ( c ) ) > 0 )
-#define INTERSECT( x, y, w, h, x1, y1, w1, h1 )    ( OVERLAP ( ( x ), ( w ), ( x1 ), ( w1 ) ) && OVERLAP ( ( y ), ( h ), ( y1 ), ( h1 ) ) )
+#define INTERSECT( x, y, x1, y1, w1, h1 )    ( ( ( ( x ) >= ( x1 ) ) && ( ( x ) < ( x1 + w1 ) ) ) && ( ( ( y ) >= ( y1 ) ) && ( ( y ) < ( y1 + h1 ) ) ) )
 
 #define TRUE     1
 #define FALSE    0
@@ -296,7 +294,7 @@ static void mmb_screen_free ( MMB_Screen **screen )
 static int mmb_screen_get_active_monitor ( MMB_Screen *screen )
 {
     for ( int i = 0; i < screen->num_monitors; i++ ) {
-        if ( INTERSECT ( screen->active_monitor.x, screen->active_monitor.y, 1, 1,
+        if ( INTERSECT ( screen->active_monitor.x, screen->active_monitor.y,
                          screen->monitors[i]->x,
                          screen->monitors[i]->y,
                          screen->monitors[i]->w,
