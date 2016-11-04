@@ -16,7 +16,7 @@
 * libglib2.0 >= 2.40
 * libxcb (sometimes split, you need libxcb, libxcb-xkb and libxcb-randr libxcb-xinerama)
 * xcb-util
-* xcb-util-wm (sometimes split as libxcb-ewmh and libxcb-icccm libxcb-dpms)
+* xcb-util-wm (sometimes split as libxcb-ewmh and libxcb-icccm libxcb-dpms libxcb-screensaver)
 * xcb-util-xrm [new module, can be found here](https://github.com/Airblader/xcb-util-xrm/)
 
 On debian based systems, the developer packages are in the form of: `<package>-dev` on rpm based
