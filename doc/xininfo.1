@@ -1,0 +1,136 @@
+.\" generated with Ronn/v0.7.3
+.\" http://github.com/rtomayko/ronn/tree/0.7.3
+.
+.TH "XININFO" "" "2016-11-03" "" ""
+.
+.SH "NAME"
+xininfo \- a tool to query the layout and size of each configured monitor\.
+.
+.SH "SYNOPSIS"
+\fBxininfo\fR [\-monitor \fIid\fR] [\-active\-mon] [\-mon\-size] [ \-mon\-width ] [ \-mon\-height ] [ \-mon\-x ] [ \-mon\-y ] [ \-mon\-pos ] [ \-num\-mon ] [ \-max\-mon\-width ] [ \-max\-mon\-height ] [ \-print ] [\-help] [ \-name ]
+.
+.SH "DESCRIPTION"
+\fBxininfo\fR is an X11 utility to query the current layout and size of each configured monitor\. It is designed to be used by scripts\.
+.
+.SH "License"
+MIT/X11
+.
+.SH "USAGE"
+\fBxininfo\fR accepts the following commands\. Multiple commands can be concatenated\. All information returned is in number of pixels\.
+.
+.P
+\fB\-monitor\fR \fIid\fR
+.
+.P
+Set queried monitor to \fIid\fR\. By default it uses the active monitor\.
+.
+.P
+\fB\-active\-mon\fR
+.
+.P
+Query the \fIid\fR of the active monitor\.
+.
+.P
+\fBPrints\fR: \fIid\fR
+.
+.P
+\fB\-mon\-size\fR
+.
+.P
+Get the size of the monitor\.
+.
+.P
+\fBPrints\fR: \fIwidth\fR \fIheight\fR
+.
+.P
+\fB\-mon\-width\fR
+.
+.P
+Get the width of the monitor:
+.
+.P
+\fBPrints\fR: \fIwidth\fR
+.
+.P
+\fB\-mon\-height\fR
+.
+.P
+Get the height of the monitor:
+.
+.P
+\fBPrints\fR: \fIheight\fR
+.
+.P
+\fB\-mon\-x\fR
+.
+.P
+Get the x position of the monitor:
+.
+.P
+\fBPrints\fR: \fIx\fR
+.
+.P
+\fB\-mon\-y\fR
+.
+.P
+Get the y position of the monitor:
+.
+.P
+\fBPrints\fR: \fIy\fR
+.
+.P
+\fB\-mon\-pos\fR
+.
+.P
+Get the position of the monitor:
+.
+.P
+\fBPrints\fR: \fIx\fR \fIy\fR
+.
+.P
+\fB\-num\-mon\fR
+.
+.P
+Queries the number of configured monitors\.
+.
+.P
+\fBPrints\fR: \fI#monitors\fR
+.
+.P
+\fB\-max\-mon\-width\fR
+.
+.P
+Query width of the monitor with the most horizontal pixels
+.
+.P
+\fBPrints\fR: \fIwidth\fR
+.
+.P
+\fB\-max\-mon\-height\fR
+.
+.P
+Query height of the monitor with the most vertical pixels
+.
+.P
+\fBPrints\fR: \fIwidth\fR
+.
+.P
+\fB\-print\fR
+.
+.P
+Print out all information in a human readable format\.
+.
+.P
+\fB\-name\fR
+.
+.P
+Print the xrandr name of the monitor\.
+.
+.P
+\fB\-h\fR \fB\-help\fR
+.
+.P
+Show the manpage of \fBxininfo\fR
+.
+.SH "AUTHOR"
+Qball Cow \fIqball@gmpclient\.org\fR
