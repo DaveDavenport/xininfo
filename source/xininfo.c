@@ -302,6 +302,9 @@ static void mmb_screen_free ( MMB_Screen **screen )
     for ( int i = 0; i < ( *screen )->num_monitors; i++ ) {
         if ( ( *screen )->monitors[i]->name ) {
             free ( ( *screen )->monitors[i]->name );
+            if ( (*screen)->monitors[i]->modes_len > 0 ) {
+                free (  ( *screen )->monitors[i]->modes );
+            }
             free ( ( *screen )->monitors[i] );
         }
     }
