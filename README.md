@@ -1,0 +1,1 @@
+doc/xininfo.markdown
