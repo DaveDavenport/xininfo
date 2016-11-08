@@ -44,8 +44,8 @@
 #include <xcb/xcb_ewmh.h>
 #include <xcb/screensaver.h>
 
-#define MAX( a, b )                                ( ( a ) > ( b ) ? ( a ) : ( b ) )
-#define MIN( a, b )                                ( ( a ) < ( b ) ? ( a ) : ( b ) )
+#define MAX( a, b )                          ( ( a ) > ( b ) ? ( a ) : ( b ) )
+#define MIN( a, b )                          ( ( a ) < ( b ) ? ( a ) : ( b ) )
 #define INTERSECT( x, y, x1, y1, w1, h1 )    ( ( ( ( x ) >= ( x1 ) ) && ( ( x ) < ( x1 + w1 ) ) ) && ( ( ( y ) >= ( y1 ) ) && ( ( y ) < ( y1 + h1 ) ) ) )
 
 #define TRUE     1
@@ -56,13 +56,20 @@ xcb_screen_t          *screen     = NULL;
 xcb_ewmh_connection_t ewmh;
 int                   screen_nbr = 0;
 
+typedef struct
+{
+    int    w, h;
+    double rate;
+} MMB_Mode;
 // Monitor layout stuff.
 typedef struct
 {
-    int  x, y;
-    int  w, h;
-    char *name;
-    int  primary;
+    int      x, y;
+    int      w, h;
+    char     *name;
+    int      primary;
+    MMB_Mode *modes;
+    int      modes_len;
 } MMB_Rectangle;
 
 typedef struct
@@ -146,7 +153,7 @@ static MMB_Screen *mmb_screen_create ( int screen_nbr )
 /**
  * Create monitor based on output id
  */
-static MMB_Rectangle * x11_get_monitor_from_output ( xcb_randr_output_t out )
+static MMB_Rectangle * x11_get_monitor_from_output ( xcb_randr_output_t out, xcb_randr_mode_info_t *modes, int modes_len )
 {
     xcb_randr_get_output_info_reply_t  *op_reply;
     xcb_randr_get_crtc_info_reply_t    *crtc_reply;
@@ -162,12 +169,26 @@ static MMB_Rectangle * x11_get_monitor_from_output ( xcb_randr_output_t out )
         free ( op_reply );
         return NULL;
     }
+
     MMB_Rectangle *retv = malloc ( sizeof ( MMB_Rectangle ) );
     memset ( retv, '\0', sizeof ( MMB_Rectangle ) );
     retv->x = crtc_reply->x;
     retv->y = crtc_reply->y;
     retv->w = crtc_reply->width;
     retv->h = crtc_reply->height;
+
+    retv->modes     = malloc ( sizeof ( MMB_Mode ) * op_reply->num_modes );
+    retv->modes_len = op_reply->num_modes;
+    xcb_randr_mode_t *modesr = xcb_randr_get_output_info_modes ( op_reply );
+    for ( int i = 0; i < op_reply->num_modes; i++ ) {
+        for ( int j = 0; j < modes_len; j++ ) {
+            if ( modesr[i] == modes[j].id ) {
+                retv->modes[i].w    = modes[j].width;
+                retv->modes[i].h    = modes[j].height;
+                retv->modes[i].rate = modes[j].dot_clock / (double) ( modes[j].htotal * modes[j].vtotal );
+            }
+        }
+    }
 
     char *tname    = (char *) xcb_randr_get_output_info_name ( op_reply );
     int  tname_len = xcb_randr_get_output_info_name_length ( op_reply );
@@ -236,15 +257,17 @@ void x11_build_monitor_layout ( MMB_Screen *mmc )
     if ( !res_reply ) {
         return;  //just report error
     }
-    int                mon_num = xcb_randr_get_screen_resources_current_outputs_length ( res_reply );
-    xcb_randr_output_t *ops    = xcb_randr_get_screen_resources_current_outputs ( res_reply );
+    int                   mon_num   = xcb_randr_get_screen_resources_current_outputs_length ( res_reply );
+    xcb_randr_output_t    *ops      = xcb_randr_get_screen_resources_current_outputs ( res_reply );
+    xcb_randr_mode_info_t *modes    = xcb_randr_get_screen_resources_current_modes ( res_reply );
+    int                   modes_len = xcb_randr_get_screen_resources_current_modes_length ( res_reply );
 
     // Get primary.
     xcb_randr_get_output_primary_cookie_t pc      = xcb_randr_get_output_primary ( connection, screen->root );
     xcb_randr_get_output_primary_reply_t  *pc_rep = xcb_randr_get_output_primary_reply ( connection, pc, NULL );
 
     for ( int i = mon_num - 1; i >= 0; i-- ) {
-        MMB_Rectangle *w = x11_get_monitor_from_output ( ops[i] );
+        MMB_Rectangle *w = x11_get_monitor_from_output ( ops[i], modes, modes_len );
         if ( w ) {
             mmc->monitors                    = realloc ( mmc->monitors, ( mmc->num_monitors + 1 ) * sizeof ( MMB_Rectangle* ) );
             mmc->monitors[mmc->num_monitors] = w;
@@ -328,7 +351,7 @@ static void mmb_screen_print ( MMB_Screen *screen )
 
 static void screensaver ( char **argv )
 {
-    (void) (argv);
+    (void) ( argv );
     if ( !x11_is_extension_present ( "MIT-SCREEN-SAVER" ) ) {
         printf ( "unavailable\n" );
         return;
@@ -359,7 +382,7 @@ static void screensaver ( char **argv )
 }
 static void screensaver_print ( char **argv )
 {
-    (void) (argv);
+    (void) ( argv );
     printf ( "screensaver:     " );
     screensaver ( NULL );
 }
@@ -506,7 +529,7 @@ static void print_mon_pos ( char **argv )
 }
 static void print_max_mon_width ( char **argv )
 {
-    (void ) (argv);
+    (void ) ( argv );
     int maxw = 0;
 
     for ( int i = 0; i < mmb_screen->num_monitors; i++ ) {
@@ -517,7 +540,7 @@ static void print_max_mon_width ( char **argv )
 }
 static void print_max_mon_height ( char **argv )
 {
-    (void ) (argv);
+    (void ) ( argv );
     int maxh = 0;
 
     for ( int i = 0; i < mmb_screen->num_monitors; i++ ) {
@@ -541,10 +564,18 @@ static void print_num_mon ( char **argv )
     (void ) ( argv );
     printf ( "%u\n", mmb_screen->num_monitors );
 }
-static void print (char **argv )
+static void print ( char **argv )
 {
-    (void ) (argv);
+    (void ) ( argv );
     mmb_screen_print ( mmb_screen );
+}
+
+static void print_mon_modes  ( char ** argv )
+{
+    (void ) ( argv );
+    for ( int i = 0; i < selected_mon->modes_len; i++ ) {
+        printf ( "%d %d @ %.2f\n", selected_mon->modes[i].w, selected_mon->modes[i].h, selected_mon->modes[i].rate );
+    }
 }
 static void print_help ( char ** );
 typedef struct _CmdOptions
@@ -670,7 +701,12 @@ static const CmdOptions options[] = {
         .callback    = print_mon_name,
         .description = "Print monitor name."
     },
-
+    {
+        .handle      = "-modes",
+        .n_args      = 0,
+        .callback    = print_mon_modes,
+        .description = "Print monitors supported modes."
+    },
 
     {
         .handle      = "-h",
@@ -684,8 +720,8 @@ const unsigned int      num_options = sizeof ( options ) / sizeof ( CmdOptions )
 static void print_help ( char **argv )
 {
     (void ) ( argv );
-    printf ( "xinfino usage:\n");
-    printf ( "       xininfo [-option ....]\n");
+    printf ( "xinfino usage:\n" );
+    printf ( "       xininfo [-option ....]\n" );
     printf ( "\n" );
     printf ( "Command line options:\n" );
     for ( unsigned int i = 0; i < num_options; i++ ) {
@@ -712,7 +748,7 @@ static int handle_arg ( int argc, char **argv )
             }
         }
     }
-    fprintf(stderr, "Commandline option: '%s' not found.\n", argv[0]);
+    fprintf ( stderr, "Commandline option: '%s' not found.\n", argv[0] );
     return 0;
 }
 
