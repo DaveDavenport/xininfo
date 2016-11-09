@@ -25,7 +25,7 @@ xininfo - a tool to query the layout and size of each configured monitor.
 [ -print ] 
 [ -name ]
 [ -modes ]
-[ -help ]
+[ -h ]
 
 
 
@@ -137,7 +137,6 @@ Print the xrandr name of the monitor.
 Print the supported modes (resolution and refresh rate) for the selected monitor.
 
 `-h`
-`-help`
 
 Show the manpage of **xininfo**
 
