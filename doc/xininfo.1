@@ -1,13 +1,13 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "XININFO" "" "2016-11-03" "" ""
+.TH "XININFO" "" "2016-11-09" "" ""
 .
 .SH "NAME"
 xininfo \- a tool to query the layout and size of each configured monitor\.
 .
 .SH "SYNOPSIS"
-\fBxininfo\fR [\-monitor \fIid\fR] [\-active\-mon] [\-mon\-size] [ \-mon\-width ] [ \-mon\-height ] [ \-mon\-x ] [ \-mon\-y ] [ \-mon\-pos ] [ \-num\-mon ] [ \-max\-mon\-width ] [ \-max\-mon\-height ] [ \-print ] [\-help] [ \-name ]
+\fBxininfo\fR [ \-monitor \fIid\fR] [ \-active\-mon] [ \-mon\-size] [ \-mon\-width ] [ \-max\-mon\-width ] [ \-mon\-height ] [ \-max\-mon\-height ] [ \-mon\-x ] [ \-mon\-y ] [ \-mon\-pos ] [ \-num\-mon ] [ \-dpms ] [ \-dpms\-state ] [ \-screensaver ] [ \-screensaver\-state ] [ \-print ] [ \-name ] [ \-modes ] [ \-help ]
 .
 .SH "DESCRIPTION"
 \fBxininfo\fR is an X11 utility to query the current layout and size of each configured monitor\. It is designed to be used by scripts\.
@@ -52,6 +52,15 @@ Get the width of the monitor:
 \fBPrints\fR: \fIwidth\fR
 .
 .P
+\fB\-max\-mon\-width\fR
+.
+.P
+Query width of the monitor with the most horizontal pixels
+.
+.P
+\fBPrints\fR: \fIwidth\fR
+.
+.P
 \fB\-mon\-height\fR
 .
 .P
@@ -59,6 +68,15 @@ Get the height of the monitor:
 .
 .P
 \fBPrints\fR: \fIheight\fR
+.
+.P
+\fB\-max\-mon\-height\fR
+.
+.P
+Query height of the monitor with the most vertical pixels
+.
+.P
+\fBPrints\fR: \fIwidth\fR
 .
 .P
 \fB\-mon\-x\fR
@@ -97,22 +115,28 @@ Queries the number of configured monitors\.
 \fBPrints\fR: \fI#monitors\fR
 .
 .P
-\fB\-max\-mon\-width\fR
+\fB\-dpms\fR
 .
 .P
-Query width of the monitor with the most horizontal pixels
+Prints the current dpms state human readable\.
 .
 .P
-\fBPrints\fR: \fIwidth\fR
+\fB\-dpms\-state\fR
 .
 .P
-\fB\-max\-mon\-height\fR
+Prints the current dpms state easy parsable\.
 .
 .P
-Query height of the monitor with the most vertical pixels
+\fB\-screensaver\fR
 .
 .P
-\fBPrints\fR: \fIwidth\fR
+Prints the current screensaver state human readable\.
+.
+.P
+\fB\-screensaver\-state\fR
+.
+.P
+Prints the current screensaver state easy parsable\.
 .
 .P
 \fB\-print\fR
@@ -125,6 +149,12 @@ Print out all information in a human readable format\.
 .
 .P
 Print the xrandr name of the monitor\.
+.
+.P
+\fB\-modes\fR
+.
+.P
+Print the supported modes (resolution and refresh rate) for the selected monitor\.
 .
 .P
 \fB\-h\fR \fB\-help\fR

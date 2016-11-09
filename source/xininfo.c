@@ -65,7 +65,7 @@ typedef struct
 // Monitor layout stuff.
 typedef struct
 {
-    int enabled;
+    int      enabled;
     int      x, y;
     int      w, h;
     char     *name;
@@ -162,9 +162,9 @@ static MMB_Rectangle * x11_get_monitor_from_output ( xcb_randr_output_t out, xcb
     xcb_randr_get_output_info_cookie_t it = xcb_randr_get_output_info ( connection, out, XCB_CURRENT_TIME );
     op_reply = xcb_randr_get_output_info_reply ( connection, it, NULL );
 
-    if ( op_reply->num_modes == 0 ){
+    if ( op_reply->num_modes == 0 ) {
         // No monitor attached.
-        free(op_reply);
+        free ( op_reply );
         return NULL;
     }
     MMB_Rectangle *retv = malloc ( sizeof ( MMB_Rectangle ) );
@@ -174,10 +174,10 @@ static MMB_Rectangle * x11_get_monitor_from_output ( xcb_randr_output_t out, xcb
         crtc_reply = xcb_randr_get_crtc_info_reply ( connection, ct, NULL );
         if ( crtc_reply ) {
             retv->enabled = TRUE;
-            retv->x = crtc_reply->x;
-            retv->y = crtc_reply->y;
-            retv->w = crtc_reply->width;
-            retv->h = crtc_reply->height;
+            retv->x       = crtc_reply->x;
+            retv->y       = crtc_reply->y;
+            retv->w       = crtc_reply->width;
+            retv->h       = crtc_reply->height;
             free ( crtc_reply );
         }
     }
@@ -306,7 +306,7 @@ static void mmb_screen_free ( MMB_Screen **screen )
     for ( int i = 0; i < ( *screen )->num_monitors; i++ ) {
         if ( ( *screen )->monitors[i]->name ) {
             free ( ( *screen )->monitors[i]->name );
-            if ( (*screen)->monitors[i]->modes_len > 0 ) {
+            if ( ( *screen )->monitors[i]->modes_len > 0 ) {
                 free (  ( *screen )->monitors[i]->modes );
             }
             free ( ( *screen )->monitors[i] );
@@ -343,14 +343,14 @@ static void mmb_screen_print ( MMB_Screen *screen )
 
     for ( int i = 0; i < screen->num_monitors; i++ ) {
         printf ( "               %01d: %d %d -> %d %d (%s) %s\n",
-                i,
-                screen->monitors[i]->x,
-                screen->monitors[i]->y,
-                screen->monitors[i]->w,
-                screen->monitors[i]->h,
-                screen->monitors[i]->name,
-                screen->monitors[i]->enabled? "":"(disabled)"
-               );
+                 i,
+                 screen->monitors[i]->x,
+                 screen->monitors[i]->y,
+                 screen->monitors[i]->w,
+                 screen->monitors[i]->h,
+                 screen->monitors[i]->name,
+                 screen->monitors[i]->enabled ? "" : "(disabled)"
+                 );
     }
 
     int active_monitor = mmb_screen_get_active_monitor ( screen );
@@ -627,19 +627,7 @@ static const CmdOptions options[] = {
         .description = "Get largest monitor width."
     },
     {
-        .handle      = "--max-mon-width",
-        .n_args      = 0,
-        .callback    = print_max_mon_width,
-        .description = "Get the largest monitor width."
-    },
-    {
         .handle      = "-max-mon-height",
-        .n_args      = 0,
-        .callback    = print_max_mon_height,
-        .description = "Get the largest monitor height."
-    },
-    {
-        .handle      = "--max-mon-height",
         .n_args      = 0,
         .callback    = print_max_mon_height,
         .description = "Get the largest monitor height."
@@ -681,7 +669,7 @@ static const CmdOptions options[] = {
         .description = "Get the dpms state."
     },
     {
-        .handle      = "-dpms-monitor-state",
+        .handle      = "-dpms-state",
         .n_args      = 0,
         .callback    = dpms_state,
         .description = "Get the dpms state (parsable)."
